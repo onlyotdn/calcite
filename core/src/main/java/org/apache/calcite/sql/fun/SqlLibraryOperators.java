@@ -2252,4 +2252,12 @@ public abstract class SqlLibraryOperators {
   @LibraryOperator(libraries = {SPARK})
   public static final SqlFunction GETBIT =
       BIT_GET.withName("GETBIT");
+
+  /** The "SHUFFLE(array)" function (Spark). */
+  @LibraryOperator(libraries = {SPARK})
+  public static final SqlFunction SHUFFLE =
+      SqlBasicFunction.create("SHUFFLE",
+          SqlLibraryOperators::arrayReturnType,
+          OperandTypes.ARRAY,
+          SqlFunctionCategory.SYSTEM);
 }
