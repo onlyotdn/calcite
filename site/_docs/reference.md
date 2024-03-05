@@ -3291,7 +3291,7 @@ our planning metadata from the planner is very often not very accurate;
 * Operator resource constraints: for many cases, we would give a default resource configuration
 for the execution operators,
 i.e. min parallelism, memory (resource consuming UDF), special resource requirement (GPU or SSD disk) ...
-It would be very flexible to profile the resource with hints per query (not the Job).
+It would be very flexible to profile the resource with hints per query (not the Job). 
 
 #### Syntax
 
