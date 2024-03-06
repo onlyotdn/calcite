@@ -2839,6 +2839,7 @@ In the following:
 | b m p s | SHA1(string)                             | Calculates a SHA-1 hash value of *string* and returns it as a hex string
 | b p | SHA256(string)                               | Calculates a SHA-256 hash value of *string* and returns it as a hex string
 | b p | SHA512(string)                               | Calculates a SHA-512 hash value of *string* and returns it as a hex string
+| s | SHUFFLE(array)                                | Returns a random permutation of the given array
 | * | SINH(numeric)                                  | Returns the hyperbolic sine of *numeric*
 | b m o p | SOUNDEX(string)                          | Returns the phonetic representation of *string*; throws if *string* is encoded with multi-byte encoding such as UTF-8
 | s | SOUNDEX(string)                                | Returns the phonetic representation of *string*; return original *string* if *string* is encoded with multi-byte encoding such as UTF-8

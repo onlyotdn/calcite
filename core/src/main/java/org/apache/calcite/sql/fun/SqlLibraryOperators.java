@@ -1176,17 +1176,25 @@ public abstract class SqlLibraryOperators {
           OperandTypes.MAP_FUNCTION,
           SqlFunctionCategory.SYSTEM);
 
+  /** The "SHUFFLE(array)" function (Spark). */
+  @LibraryOperator(libraries = {SPARK})
+  public static final SqlFunction SHUFFLE =
+      SqlBasicFunction.create("SHUFFLE",
+          ReturnTypes.LEAST_RESTRICTIVE,
+          OperandTypes.ARRAY,
+          SqlFunctionCategory.SYSTEM);
+
   @SuppressWarnings("argument.type.incompatible")
   private static RelDataType arrayAppendPrependReturnType(SqlOperatorBinding opBinding) {
     final RelDataType arrayType = opBinding.collectOperandTypes().get(0);
     final RelDataType componentType = arrayType.getComponentType();
-    final RelDataType elementType = opBinding.collectOperandTypes().get(1);
+    // final RelDataType elementType = opBinding.collectOperandTypes().get(1);
     RelDataType type =
         opBinding.getTypeFactory().leastRestrictive(
-            ImmutableList.of(componentType, elementType));
-    if (elementType.isNullable()) {
-      type = opBinding.getTypeFactory().createTypeWithNullability(type, true);
-    }
+            ImmutableList.of(componentType));
+//    if (elementType.isNullable()) {
+//      type = opBinding.getTypeFactory().createTypeWithNullability(type, true);
+//    }
     requireNonNull(type, "inferred array element type");
     return SqlTypeUtil.createArrayType(opBinding.getTypeFactory(), type, arrayType.isNullable());
   }

@@ -5635,6 +5635,12 @@ public class SqlFunctions {
     return resultCollection;
   }
 
+  /** Support the SHUFFLE function. */
+  public static List shuffle(List list) {
+    Collections.shuffle(list);
+    return list;
+  }
+
   /** Support the ARRAY_REVERSE function. */
   public static List reverse(List list) {
     Collections.reverse(list);

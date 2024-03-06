@@ -24,6 +24,7 @@ import org.apache.calcite.util.JdbcType;
 import com.google.common.collect.ImmutableSet;
 
 import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Assertions;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -40,10 +41,10 @@ import java.util.regex.Pattern;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import static java.util.Objects.requireNonNull;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /** Utilities for {@link SqlTester.ResultChecker}. */
 public class ResultCheckers {
@@ -106,6 +107,10 @@ public class ResultCheckers {
     return new RefSetResultChecker(ImmutableSet.copyOf(values));
   }
 
+  public static SqlTester.ResultChecker isAnyOfSet(String... values) {
+    return new AnyOfRefSetResultChecker(ImmutableSet.copyOf(values));
+  }
+
   public static SqlTester.ResultChecker isNullValue() {
     return new RefSetResultChecker(Collections.singleton(null));
   }
@@ -121,6 +126,33 @@ public class ResultCheckers {
    */
   static void compareResultSet(String sql, ResultSet resultSet,
       Set<String> refSet) throws Exception {
+    Set<String> actualSet = extractActualSet(sql, resultSet);
+    final String msg = "Query: " + sql;
+    assertEquals(refSet, actualSet, msg);
+  }
+
+  /**
+   *
+   * @param sql
+   * @param resultSet
+   * @param refSet
+   */
+  static void anyOfResultSet(String sql, ResultSet resultSet,
+      Set<String> refSet) throws Exception {
+    Set<String> actualSet = extractActualSet(sql, resultSet);
+    final String msg = "Query: " + sql;
+    assertTrue(refSet.stream().anyMatch(actualSet::contains), msg);
+  }
+
+
+  /**
+   * Extract the first column as a string set.
+   * @param sql SQL to show in case of failure
+   * @param resultSet raw Result set
+   * @return string set
+   * @throws Exception .
+   */
+  static Set<String> extractActualSet(String sql, ResultSet resultSet) throws Exception {
     Set<String> actualSet = new HashSet<>();
     final int columnType = resultSet.getMetaData().getColumnType(1);
     final ColumnMetaData.Rep rep = rep(columnType);
@@ -174,7 +206,7 @@ public class ResultCheckers {
       assertThat(msg, wasNull2, equalTo(wasNull0));
     }
     resultSet.close();
-    assertEquals(refSet, actualSet, msg);
+    return actualSet;
   }
 
   private static ColumnMetaData.Rep rep(int columnType) {
@@ -334,6 +366,19 @@ public class ResultCheckers {
 
     @Override public void checkResult(String sql, ResultSet resultSet) throws Exception {
       compareResultSet(sql, resultSet, expected);
+    }
+  }
+
+  static class AnyOfRefSetResultChecker implements  SqlTester.ResultChecker {
+    private final Set<String> expected;
+
+    AnyOfRefSetResultChecker(Set<String> expected) {
+      this.expected = ImmutableNullableSet.copyOf(expected);
+    }
+
+    @Override
+    public void checkResult(String sql, ResultSet resultSet) throws Exception {
+      anyOfResultSet(sql, resultSet, expected);
     }
   }
 }

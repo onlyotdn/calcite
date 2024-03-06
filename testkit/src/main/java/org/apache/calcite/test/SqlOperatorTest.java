@@ -52,13 +52,9 @@ import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.pretty.SqlPrettyWriter;
-import org.apache.calcite.sql.test.AbstractSqlTester;
-import org.apache.calcite.sql.test.SqlOperatorFixture;
+import org.apache.calcite.sql.test.*;
 import org.apache.calcite.sql.test.SqlOperatorFixture.CastType;
 import org.apache.calcite.sql.test.SqlOperatorFixture.VmName;
-import org.apache.calcite.sql.test.SqlTestFactory;
-import org.apache.calcite.sql.test.SqlTester;
-import org.apache.calcite.sql.test.SqlTests;
 import org.apache.calcite.sql.type.BasicSqlType;
 import org.apache.calcite.sql.type.SqlOperandTypeChecker;
 import org.apache.calcite.sql.type.SqlTypeName;
@@ -118,13 +114,7 @@ import static org.apache.calcite.linq4j.tree.Expressions.list;
 import static org.apache.calcite.rel.type.RelDataTypeImpl.NON_NULLABLE_SUFFIX;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.PI;
 import static org.apache.calcite.sql.fun.SqlStdOperatorTable.QUANTIFY_OPERATORS;
-import static org.apache.calcite.sql.test.ResultCheckers.isExactDateTime;
-import static org.apache.calcite.sql.test.ResultCheckers.isExactTime;
-import static org.apache.calcite.sql.test.ResultCheckers.isExactly;
-import static org.apache.calcite.sql.test.ResultCheckers.isNullValue;
-import static org.apache.calcite.sql.test.ResultCheckers.isSet;
-import static org.apache.calcite.sql.test.ResultCheckers.isSingle;
-import static org.apache.calcite.sql.test.ResultCheckers.isWithin;
+import static org.apache.calcite.sql.test.ResultCheckers.*;
 import static org.apache.calcite.sql.test.SqlOperatorFixture.BAD_DATETIME_MESSAGE;
 import static org.apache.calcite.sql.test.SqlOperatorFixture.DIVISION_BY_ZERO_MESSAGE;
 import static org.apache.calcite.sql.test.SqlOperatorFixture.INVALID_ARGUMENTS_NUMBER;
@@ -4178,6 +4168,23 @@ public class SqlOperatorTest {
     // binary string
     f1.checkScalarExact("BIT_LENGTH(x'4170616368652043616C63697465')", 112);
     f1.checkNull("BIT_LENGTH(cast(null as binary))");
+  }
+
+  @Test void testShuffleFunc() {
+    final SqlOperatorFixture f0 = Fixtures.forOperators(true);
+    f0.setFor(SqlLibraryOperators.SHUFFLE);
+    f0.checkFails("^shuffle(array[1, 2, 3])^",
+        "No match found for function signature SHUFFLE\\(<INTEGER ARRAY>\\)", false);
+
+    final SqlOperatorFixture f1 = f0.withLibrary(SqlLibrary.SPARK);
+    f1.checkScalar("SHUFFLE(array['1', '2'])",
+        ResultCheckers.isAnyOfSet("[1, 2]", "[2, 1]"), "CHAR(1) NOT NULL ARRAY NOT NULL");
+    f1.checkScalar("SHUFFLE(array['1', '2', '4'])",
+        ResultCheckers.isAnyOfSet("[1, 2, 4]", "[1, 4, 2]", "[2, 1, 4]", "[2, 4, 1]",
+            "[4, 1, 2]", "[4, 2, 1]"), "CHAR(1) NOT NULL ARRAY NOT NULL");
+    f1.checkScalar("SHUFFLE(array[, '2', '4'])",
+        ResultCheckers.isAnyOfSet("[1, 2, 4]", "[1, 4, 2]", "[2, 1, 4]", "[2, 4, 1]",
+            "[4, 1, 2]", "[4, 2, 1]"), "CHAR(1) NOT NULL ARRAY NOT NULL");
   }
 
   /** Generates parameters to test both BIT_GET and GETBIT functions. */
